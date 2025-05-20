@@ -1,19 +1,17 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import { Parser } from 'json2csv';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url'; // Adicione esta linha
-import dotenv from 'dotenv';
-dotenv.config(); // Carrega as variáveis de ambiente do arquivo .env
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const { Parser } = require('json2csv');
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
+const fetch = require('node-fetch');
+dotenv.config();
 
 const app = express();
 const PORT = 80;
 
-// Defina __dirname para ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.resolve(); // Em CommonJS já é suportado
 
 // Middleware
 app.use(cors({
@@ -42,14 +40,12 @@ const saveLeads = (leads) => {
 
 // Função para enviar mensagem via API Evolution
 const sendWhatsAppMessage = async (formData) => {
-  const fetch = (await import('node-fetch')).default; // Importação dinâmica
   const apiUrl = 'https://evolutionapi.styxx.cloud';
   const instanceName = 'autosg';
-  const apiKey = process.env.EVOLUTION_API_KEY; // Obtém a API key do .env
+  const apiKey = process.env.EVOLUTION_API_KEY;
   const message = `Novo formulário recebido:\nNome: ${formData.name}\nNúmero: ${formData.number}`;
 
-  // Lista de números para enviar a mensagem
-  const phoneNumbers = ['5511930651948', '5516991002036', '16992578710']; // Adicione mais números conforme necessário
+  const phoneNumbers = ['5511930651948', '5516991002036', '16992578710'];
 
   for (const phoneNumber of phoneNumbers) {
     const options = {
@@ -81,30 +77,31 @@ let leads = loadLeads();
 app.post('/submit', (req, res) => {
   const formData = req.body;
 
-  // Validação simples
   if (!formData.name || !formData.whatsapp) {
     return res.status(400).json({ error: 'Nome e número são obrigatórios.' });
   }
 
-  // Salva apenas nome e número
   const lead = {
     name: formData.name,
-    number: formData.whatsapp // Aqui está correto: salva o número no campo "number"
+    number: formData.whatsapp
   };
 
   leads.push(lead);
-  saveLeads(leads); // Salva os dados no arquivo
+  saveLeads(leads);
   console.log('Dados recebidos:', lead);
 
-  // Envia mensagem via API Evolution
   sendWhatsAppMessage(lead);
 
+  res.status(200).json({ success: true });
+});
+
+// Rota para download em CSV
 app.get('/download', (_, res) => {
   if (leads.length === 0) {
     return res.status(404).json({ error: 'Nenhum dado disponível para download.' });
   }
 
-  const fields = ['name', 'number']; // Aqui está correto: exporta "name" e "number"
+  const fields = ['name', 'number'];
   const json2csvParser = new Parser({ fields });
   const csv = json2csvParser.parse(leads);
 
@@ -118,9 +115,6 @@ app.get('/download', (_, res) => {
     }
   });
 });
-      res.status(500).json({ error: 'Erro ao enviar o arquivo.' });
-    }
-  );
 
 // Inicia o servidor
 app.listen(PORT, () => {
