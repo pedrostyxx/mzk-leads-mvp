@@ -1,10 +1,11 @@
-import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { Parser } from 'json2csv';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
+dotenv.config(); // Carrega as variáveis de ambiente do arquivo .env
 
 const app = express();
 const PORT = 80;
