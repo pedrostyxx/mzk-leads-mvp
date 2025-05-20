@@ -1,16 +1,20 @@
-require('dotenv').config(); 
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { Parser } = require('json2csv');
-const fs = require('fs');
-const path = require('path');
+import 'dotenv/config';
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import { Parser } from 'json2csv';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 const PORT = 80;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // Permite qualquer origem, ajuste conforme necessário para produção
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'apikey']
+}));
 app.use(bodyParser.json());
 
 // Caminho do arquivo para armazenar os dados
@@ -89,11 +93,7 @@ app.post('/submit', (req, res) => {
   // Envia mensagem via API Evolution
   sendWhatsAppMessage(lead);
 
-  res.status(200).json({ message: 'Dados recebidos com sucesso!' });
-});
-
-// Rota para baixar os dados em formato CSV
-app.get('/download', (req, res) => {
+app.get('/download', (_, res) => {
   if (leads.length === 0) {
     return res.status(404).json({ error: 'Nenhum dado disponível para download.' });
   }
@@ -112,6 +112,9 @@ app.get('/download', (req, res) => {
     }
   });
 });
+      res.status(500).json({ error: 'Erro ao enviar o arquivo.' });
+    }
+  );
 
 // Inicia o servidor
 app.listen(PORT, () => {
