@@ -11,8 +11,6 @@ dotenv.config();
 const app = express();
 const PORT = 80;
 
-const __dirname = path.resolve(); // Em CommonJS já é suportado
-
 // Middleware
 app.use(cors({
   origin: '*', // Permite qualquer origem, ajuste conforme necessário para produção
