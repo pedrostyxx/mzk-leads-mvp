@@ -4,11 +4,16 @@ import cors from 'cors';
 import { Parser } from 'json2csv';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url'; // Adicione esta linha
 import dotenv from 'dotenv';
 dotenv.config(); // Carrega as variáveis de ambiente do arquivo .env
 
 const app = express();
 const PORT = 80;
+
+// Defina __dirname para ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(cors({
