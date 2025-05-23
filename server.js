@@ -5,7 +5,6 @@ const { Parser } = require('json2csv');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const fetch = require('node-fetch');
 dotenv.config();
 
 const app = express();
@@ -38,10 +37,14 @@ const saveLeads = (leads) => {
 
 // Função para enviar mensagem via API Evolution
 const sendWhatsAppMessage = async (formData) => {
+  // Importe fetch dinamicamente para CommonJS
+  const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
   const apiUrl = 'https://evolutionapi.styxx.cloud';
-  const instanceName = 'autosg';
+  const instanceName = 'karen';
   const apiKey = process.env.EVOLUTION_API_KEY;
   const message = `Novo formulário recebido:\nNome: ${formData.name}\nNúmero: ${formData.number}`;
+
+  console.log('Enviando mensagem para o WhatsApp:', message);
 
   const phoneNumbers = ['5511930651948', '5516991002036', '16992578710'];
 
@@ -116,5 +119,5 @@ app.get('/download', (_, res) => {
 
 // Inicia o servidor
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`Servidor rodando na porta:${PORT}`);
 });
