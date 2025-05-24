@@ -36,9 +36,15 @@ const loadLeads = () => {
   return [];
 };
 
-// Função para salvar os dados no arquivo JSON
+// Função para salvar os dados no arquivo JSON e atualizar o CSV
 const saveLeads = (leads) => {
   fs.writeFileSync(DATA_FILE, JSON.stringify(leads, null, 2));
+  // Atualiza o CSV sempre que salvar leads
+  const fields = ['name', 'number'];
+  const json2csvParser = new Parser({ fields });
+  const csv = json2csvParser.parse(leads);
+  const filePath = path.join(__dirname, 'leads.csv');
+  fs.writeFileSync(filePath, csv);
 };
 
 // Função para enviar mensagem via API Evolution
@@ -93,11 +99,19 @@ app.post('/submit', (req, res) => {
     number: formData.whatsapp
   };
 
-  leads.push(lead);
-  saveLeads(leads);
-  console.log('Dados recebidos:', lead);
+  // Verifica se o lead já existe (por número)
+  const alreadyExists = leads.some(l => l.number === lead.number);
 
-  sendWhatsAppMessage(lead);
+  if (!alreadyExists) {
+    leads.push(lead);
+    saveLeads(leads);
+    console.log('Dados recebidos:', lead);
+    sendWhatsAppMessage(lead); // Só envia mensagem para novo lead
+  } else {
+    console.log('Lead já existente:', lead);
+    // Mesmo que não envie mensagem, atualiza o CSV para garantir consistência
+    saveLeads(leads);
+  }
 
   res.status(200).json({ success: true });
 });
@@ -107,14 +121,8 @@ app.get('/download', (_, res) => {
   if (leads.length === 0) {
     return res.status(404).json({ error: 'Nenhum dado disponível para download.' });
   }
-
-  const fields = ['name', 'number'];
-  const json2csvParser = new Parser({ fields });
-  const csv = json2csvParser.parse(leads);
-
+  // O CSV já está sempre atualizado pelo saveLeads
   const filePath = path.join(__dirname, 'leads.csv');
-  fs.writeFileSync(filePath, csv);
-
   res.download(filePath, 'leads.csv', (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo:', err);
