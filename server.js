@@ -37,8 +37,8 @@ const saveLeads = (leads) => {
 
 // Função para enviar mensagem via API Evolution
 const sendWhatsAppMessage = async (formData) => {
-  // Importe fetch dinamicamente para CommonJS
-  const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+  // Corrija a importação dinâmica de fetch para CommonJS
+  const { default: fetch } = await import('node-fetch');
   const apiUrl = 'https://evolutionapi.styxx.cloud';
   const instanceName = 'karen';
   const apiKey = process.env.EVOLUTION_API_KEY;
