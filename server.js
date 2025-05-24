@@ -21,11 +21,17 @@ app.use(bodyParser.json());
 // Caminho do arquivo para armazenar os dados
 const DATA_FILE = path.join(__dirname, 'leads.json');
 
-// Função para carregar os dados do arquivo JSON
+// Função para carregar os dados do arquivo JSON com tratamento de erro
 const loadLeads = () => {
   if (fs.existsSync(DATA_FILE)) {
     const data = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(data);
+    if (!data.trim()) return [];
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      console.error('Arquivo leads.json corrompido. Substituindo por lista vazia.');
+      return [];
+    }
   }
   return [];
 };
